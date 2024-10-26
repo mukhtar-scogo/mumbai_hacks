@@ -1,0 +1,30 @@
+# ide editor
+.vscode/
+.idea
+
+# Logs
+logs
+*.log
+
+# test coverage
+coverage
+.nyc_output
+
+# Dependency directory
+node_modules/
+venv
+
+# OSX
+.DS_Store
+
+# App Packaged
+.webpack
+.serverless
+.dynamodb
+
+# npm lock files
+package-lock.json
+yarn.lock
+
+# Steps to take when deployment fails after mucking around in API Gateway.pdf
+/nbproject/*

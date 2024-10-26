@@ -1,0 +1,81 @@
+service: webhooks
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  stackName: ${self:service}-${self:provider.stage}
+  stage: ${opt:stage, 'dev'}
+  region: ap-south-1
+  memorySize: 1024 # optional, in MB, default is 1024
+  timeout: 30
+  versionFunctions: false
+  deploymentBucket:
+    name: ${self:provider.stage}.serverless.scogo.deployment.packages
+  role: arn:aws:iam::776246564288:role/scogo-lambda-role-${self:provider.stage}
+  metrics: false
+  logRetentionInDays: ${self:custom.logRetention.${self:provider.stage}}
+  apiGateway:
+    restApiId:
+      Fn::ImportValue: ScogoGatewayRestApi-${self:provider.stage}-restApiId
+    restApiRootResourceId:
+      Fn::ImportValue: ScogoGatewayRestApi-${self:provider.stage}-rootResourceId
+    restApiResources:
+      api:
+        Fn::ImportValue: ScogoGatewayRestApi-${self:provider.stage}-resource-api
+      api/webhooks:
+        Fn::ImportValue: ScogoGatewayRestApi-${self:provider.stage}-resource-webhooks
+      api/webhooks/triton:
+        Fn::ImportValue: ScogoGatewayRestApi-${self:provider.stage}-resource-webhooks-triton
+    binaryMediaTypes:
+      - "*/*"
+    metrics: false
+  environment:
+    LAMBDA_STAGE: ${self:provider.stage}    
+    LAMBDA_NODE_ENV: ${self:custom.${self:provider.stage}}
+    MSG91_AUTHKEY: ${ssm:/${self:provider.stage}/msg91/whatsapp_authkey~true}
+    TRITON_NATS_URL: ${ssm:/${self:provider.stage}/nats/triton_url~true}
+    TRITON_NATS_ADMIN_USER: ${ssm:/${self:provider.stage}/nats/triton_username~true}
+    TRITON_NATS_ADMIN_PASSWORD: ${ssm:/${self:provider.stage}/nats/triton_password~true}
+
+functions:
+  triton:
+    handler: hacky.handler
+    memorySize: 320
+    disableLogs: ${self:custom.disableLogs.${self:provider.stage}}
+    layers:
+      - ${cf:scogo-layers-${self:provider.stage}.NatsLayerExport}
+    events:
+      - http:
+          path: api/webhooks/triton
+          method: post
+          cors: true
+          integration: lambda
+
+# serverless optimization
+package:
+  individually: true
+
+custom:
+  disableLogs:
+    dev: false
+    prod: false
+  logRetention:
+    dev: 30
+    prod: 3653
+  web:
+    dev: https://dev.superapp.scogo.in
+    prod: https://superapp.scogo.in
+  dev: development
+  test: test
+  prod: production
+  demo: demo
+  webpack:
+    webpackConfig: ../webpack.config.js
+    includeModules:
+      forceExclude:
+        - aws-sdk
+      packagePath: ../package.json
+
+plugins:
+  - serverless-webpack
+  - serverless-offline

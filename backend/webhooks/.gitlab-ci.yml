@@ -1,0 +1,36 @@
+cache:
+  untracked: true
+  policy: pull
+  key: ${CI_COMMIT_REF_SLUG}
+
+deploy webhooks to dev:
+  stage: deploy
+  dependencies:
+    - deploy dev apigateway
+  only:
+    refs:
+      - dev
+    changes:
+      - "webhooks/**/*.js"
+      - "webhooks/**/*.yml"
+  before_script:
+    - npm config set prefix /usr/local
+    - npm install -g serverless
+  script:
+    - cd webhooks/ && serverless deploy --stage dev
+
+deploy webhooks to prod:
+  stage: deploy
+  dependencies:
+    - deploy prod apigateway
+  only:
+    refs:
+      - master
+    changes:
+      - "webhooks/**/*.js"
+      - "webhooks/**/*.yml"
+  before_script:
+    - npm config set prefix /usr/local
+    - npm install -g serverless
+  script:
+    - cd webhooks/ && serverless deploy --stage prod

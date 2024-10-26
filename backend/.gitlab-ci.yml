@@ -1,0 +1,162 @@
+image: node:14.15.4
+
+stages:
+  - packages
+  - layers
+  - sqs
+  - apigateway
+  - deploy
+
+setup packages:
+  stage: packages
+  only:
+    refs:
+      - dev
+      - master
+  # To enable per-branch and per-stage caching use => key: "$CI_JOB_STAGE-$CI_COMMIT_REF_SLUG"
+  # To enable per-job and per-branch caching: use => key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+  # To enable across the same branch use => key: ${CI_COMMIT_REF_SLUG}
+  cache:
+    untracked: true
+    policy: pull-push
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - node_modules/
+  script:
+    - echo "Installing node_modules"
+    - npm install
+    - echo "Successfully Installed node_modules"
+
+deploy dev layers:
+  stage: layers
+  dependencies:
+    - setup packages
+  only:
+    refs:
+      - dev
+    changes:
+      - "layers/**/*.yml"
+  before_script:
+    - npm config set prefix /usr/local
+    - npm install -g serverless
+  script:
+    - cd layers/ && serverless deploy --stage dev
+
+deploy prod layers:
+  stage: layers
+  dependencies:
+    - setup packages
+  only:
+    refs:
+      - master
+    changes:
+      - "layers/**/*.yml"
+  before_script:
+    - npm config set prefix /usr/local
+    - npm install -g serverless
+  script:
+    - cd layers/ && serverless deploy --stage prod
+
+deploy dev sqs:
+  stage: sqs
+  dependencies:
+    - deploy dev layers
+  only:
+    refs:
+      - dev
+    changes:
+      - "SQS/**/*.yml"
+  before_script:
+    - npm config set prefix /usr/local
+    - npm install -g serverless
+  script:
+    - cd SQS/ && serverless deploy --stage dev
+
+deploy prod sqs:
+  stage: sqs
+  dependencies:
+    - deploy prod layers
+  only:
+    refs:
+      - master
+    changes:
+      - "SQS/**/*.yml"
+  before_script:
+    - npm config set prefix /usr/local
+    - npm install -g serverless
+  script:
+    - cd SQS/ && serverless deploy --stage prod
+
+deploy dev apigateway:
+  stage: apigateway
+  dependencies:
+    - deploy dev sqs
+  only:
+    refs:
+      - dev
+  before_script:
+    - npm config set prefix /usr/local
+    - npm install -g serverless
+  script:
+    - cd API-Gateway/ && serverless deploy --stage dev
+
+deploy prod apigateway:
+  stage: apigateway
+  dependencies:
+    - deploy prod sqs
+  only:
+    refs:
+      - master
+  before_script:
+    - npm config set prefix /usr/local
+    - npm install -g serverless
+  script:
+    - cd API-Gateway/ && serverless deploy --stage prod
+
+include:
+  - local: address-lat-long/.gitlab-ci.yml
+  - local: agents-teams/.gitlab-ci.yml
+  - local: asset-types/.gitlab-ci.yml
+  - local: banks/.gitlab-ci.yml
+  - local: calendar/.gitlab-ci.yml
+  - local: ccs/.gitlab-ci.yml
+  - local: ccs-api/.gitlab-ci.yml
+  - local: ccs-sqs/.gitlab-ci.yml
+  - local: city/.gitlab-ci.yml
+  - local: config-template/.gitlab-ci.yml
+  - local: contact-us/.gitlab-ci.yml
+  - local: control-parameters/.gitlab-ci.yml
+  - local: courier-vendor/.gitlab-ci.yml
+  - local: csv/.gitlab-ci.yml
+  - local: customer/.gitlab-ci.yml
+  - local: dynamodb-events/.gitlab-ci.yml
+  - local: email/.gitlab-ci.yml
+  - local: end-user/.gitlab-ci.yml
+  - local: end-user-customer/.gitlab-ci.yml
+  - local: events/.gitlab-ci.yml
+  - local: execution-remarks/.gitlab-ci.yml
+  - local: fcm-notification/.gitlab-ci.yml
+  - local: fe-appointment/.gitlab-ci.yml
+  - local: fields/.gitlab-ci.yml
+  # - local: image-processing/.gitlab-ci.yml
+  - local: inventorymanagement/.gitlab-ci.yml
+  - local: learningmanagement/.gitlab-ci.yml
+  - local: mobile-version/.gitlab-ci.yml
+  - local: onboarding/.gitlab-ci.yml
+  # - local: payments/.gitlab-ci.yml
+  - local: pincode/.gitlab-ci.yml
+  - local: projects/.gitlab-ci.yml
+  - local: s3-events/.gitlab-ci.yml
+  - local: searchandfilters/.gitlab-ci.yml
+  - local: service-partner/.gitlab-ci.yml
+  - local: shared-authorizer/.gitlab-ci.yml
+  - local: siteType/.gitlab-ci.yml
+  - local: sms/.gitlab-ci.yml
+  - local: state/.gitlab-ci.yml
+  - local: support/.gitlab-ci.yml
+  - local: ticket/.gitlab-ci.yml
+  - local: track-ticket/.gitlab-ci.yml
+  - local: users/.gitlab-ci.yml
+  - local: wallet/.gitlab-ci.yml
+  - local: webhooks/.gitlab-ci.yml
+  - local: workflowbuilder/.gitlab-ci.yml
