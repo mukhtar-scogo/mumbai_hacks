@@ -33,9 +33,6 @@
     "zustand": "5.0.0-rc.2"
   },
   "devDependencies": {
-    "@scogo/eslint-config": "workspace:*",
-    "@scogo/tailwind-config": "workspace:*",
-    "@scogo/typescript-config": "workspace:*",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
