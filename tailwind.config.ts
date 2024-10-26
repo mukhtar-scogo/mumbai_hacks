@@ -1,5 +1,4 @@
 import type { Config } from "tailwindcss";
-import sharedConfig from "@scogo/tailwind-config";
 
 const config: Config = {
     darkMode: ["class"],
@@ -10,6 +9,10 @@ const config: Config = {
   ],
   theme: {
   	extend: {
+         backgroundImage: {
+        "glow-conic":
+          "conic-gradient(from 180deg at 50% 50%, #2a8af6 0deg, #a853ba 180deg, #e92a67 360deg)",
+      },
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
@@ -149,7 +152,6 @@ const config: Config = {
   		}
   	}
   },
-  plugins: [require("tailwindcss-animate")],
-  presets: [sharedConfig],
+  plugins: [require("tailwindcss-animate")]
 };
 export default config;
