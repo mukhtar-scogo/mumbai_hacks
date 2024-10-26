@@ -1,5 +1,4 @@
 {
-  "extends": "@scogo/typescript-config/nextjs.json",
   "compilerOptions": {
     "paths": {
       "@/*": [
