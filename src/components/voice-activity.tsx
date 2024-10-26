@@ -68,14 +68,7 @@ export function VoiceActivity() {
                 RoomEvent.ConnectionStateChanged,
                 async (state: any) => {
                     console.log('state', state)
-                    if (state === 'connected') {
-                        room.current?.localParticipant.setMicrophoneEnabled(
-                            true
-                        )
-                        room.current?.localParticipant.setMicrophoneEnabled(
-                            false
-                        )
-                    }
+                    
                 }
             )
         } else {
